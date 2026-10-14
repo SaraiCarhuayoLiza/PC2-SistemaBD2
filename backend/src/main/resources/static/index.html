@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Panel de control para productos y movimientos de inventario."
+    />
+    <title>Inventario | Panel de control</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Inventario, inicio">
+          <span class="brand-mark">i</span>
+          <span class="brand-copy">
+            <strong>Inventario</strong>
+            <small>Panel de control</small>
+          </span>
+        </a>
+
+        <div class="nav-label">MENÚ</div>
+        <nav class="main-nav" aria-label="Navegación principal">
+          <button class="nav-link active" data-view="inicio" type="button">
+            <span class="nav-icon">⌂</span> Resumen
+          </button>
+          <button class="nav-link" data-view="productos" type="button">
+            <span class="nav-icon">▦</span> Productos
+          </button>
+          <button class="nav-link" data-view="movimientos" type="button">
+            <span class="nav-icon">↕</span> Movimientos
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="connection-card">
+            <span class="connection-dot" id="connection-dot"></span>
+            <div>
+              <strong id="connection-label">Conectando...</strong>
+              <small>API de inventario</small>
+            </div>
+          </div>
+          <div class="sidebar-note">Sistema de gestión<br />de inventario</div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb">
+            <span>Inventario</span><span class="breadcrumb-divider">/</span>
+            <strong id="breadcrumb-current">Resumen</strong>
+          </div>
+          <div class="topbar-actions">
+            <span class="today-label" id="today-label"></span>
+            <span class="avatar" aria-hidden="true">I</span>
+          </div>
+        </header>
+
+        <div class="content-wrap">
+          <section class="page-view" id="view-inicio">
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">PANEL GENERAL</p>
+                <h1>Resumen de inventario</h1>
+                <p class="page-description">
+                  Revisa tus productos y mantén el stock al día.
+                </p>
+              </div>
+              <button class="button button-primary" data-open-dialog="product-dialog" type="button">
+                <span class="button-plus">+</span> Nuevo producto
+              </button>
+            </div>
+
+            <div class="stats-grid">
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-blue">▦</div>
+                <div class="stat-copy">
+                  <span>Productos registrados</span>
+                  <strong id="stat-products">—</strong>
+                </div>
+                <span class="stat-caption">en catálogo</span>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-green">▤</div>
+                <div class="stat-copy">
+                  <span>Unidades en stock</span>
+                  <strong id="stat-stock">—</strong>
+                </div>
+                <span class="stat-caption">unidades</span>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-orange">!</div>
+                <div class="stat-copy">
+                  <span>Stock bajo</span>
+                  <strong id="stat-low-stock">—</strong>
+                </div>
+                <span class="stat-caption">5 unidades o menos</span>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon stat-icon-purple">$</div>
+                <div class="stat-copy">
+                  <span>Valor del inventario</span>
+                  <strong id="stat-value">—</strong>
+                </div>
+                <span class="stat-caption">precio × stock</span>
+              </article>
+            </div>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Productos</h2>
+                  <p>Vista rápida de los productos registrados.</p>
+                </div>
+                <button class="text-button" data-switch-view="productos" type="button">
+                  Ver todos <span aria-hidden="true">→</span>
+                </button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>PRODUCTO</th>
+                      <th>CATEGORÍA</th>
+                      <th>PRECIO</th>
+                      <th>STOCK</th>
+                      <th>ESTADO</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overview-products"></tbody>
+                </table>
+              </div>
+              <div class="empty-state hidden" id="overview-empty">
+                <span class="empty-icon">▦</span>
+                <strong>Aún no hay productos</strong>
+                <span>Registra tu primer producto para comenzar.</span>
+              </div>
+            </section>
+
+            <section class="panel recent-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Movimientos recientes</h2>
+                  <p>Últimas entradas y salidas registradas.</p>
+                </div>
+                <button class="text-button" data-switch-view="movimientos" type="button">
+                  Ver movimientos <span aria-hidden="true">→</span>
+                </button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>TIPO</th>
+                      <th>PRODUCTO</th>
+                      <th>FECHA</th>
+                      <th>CANTIDAD</th>
+                      <th>MOTIVO</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overview-movements"></tbody>
+                </table>
+              </div>
+              <div class="empty-state hidden" id="overview-movements-empty">
+                <span class="empty-icon">↕</span>
+                <strong>Sin movimientos todavía</strong>
+                <span>Las entradas y salidas aparecerán aquí.</span>
+              </div>
+            </section>
+          </section>
+
+          <section class="page-view hidden" id="view-productos">
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">CATÁLOGO</p>
+                <h1>Productos</h1>
+                <p class="page-description">Administra tus productos y consulta sus existencias.</p>
+              </div>
+              <button class="button button-primary" data-open-dialog="product-dialog" type="button">
+                <span class="button-plus">+</span> Nuevo producto
+              </button>
+            </div>
+            <section class="panel">
+              <div class="panel-toolbar">
+                <div class="panel-heading">
+                  <div>
+                    <h2>Todos los productos</h2>
+                    <p id="product-count-label">Cargando catálogo...</p>
+                  </div>
+                </div>
+                <label class="search-box">
+                  <span aria-hidden="true">⌕</span>
+                  <input id="product-search" type="search" placeholder="Buscar producto..." />
+                </label>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>PRODUCTO</th>
+                      <th>DESCRIPCIÓN</th>
+                      <th>CATEGORÍA</th>
+                      <th>PRECIO</th>
+                      <th>STOCK</th>
+                      <th>ESTADO</th>
+                    </tr>
+                  </thead>
+                  <tbody id="products-table"></tbody>
+                </table>
+              </div>
+              <div class="empty-state hidden" id="products-empty">
+                <span class="empty-icon">▦</span>
+                <strong>No se encontraron productos</strong>
+                <span>Prueba con otro término o agrega un producto nuevo.</span>
+              </div>
+            </section>
+          </section>
+
+          <section class="page-view hidden" id="view-movimientos">
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">CONTROL DE STOCK</p>
+                <h1>Movimientos</h1>
+                <p class="page-description">Cada entrada o salida actualiza automáticamente el stock.</p>
+              </div>
+              <button class="button button-primary" data-open-dialog="movement-dialog" type="button">
+                <span class="button-plus">+</span> Registrar movimiento
+              </button>
+            </div>
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Historial de movimientos</h2>
+                  <p id="movement-count-label">Entradas y salidas del inventario.</p>
+                </div>
+                <label class="filter-box">
+                  <span class="sr-only">Filtrar movimientos</span>
+                  <select id="movement-filter">
+                    <option value="todos">Todos los movimientos</option>
+                    <option value="ENTRADA">Entradas</option>
+                    <option value="SALIDA">Salidas</option>
+                  </select>
+                </label>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>TIPO</th>
+                      <th>PRODUCTO</th>
+                      <th>FECHA</th>
+                      <th>CANTIDAD</th>
+                      <th>MOTIVO</th>
+                    </tr>
+                  </thead>
+                  <tbody id="movements-table"></tbody>
+                </table>
+              </div>
+              <div class="empty-state hidden" id="movements-empty">
+                <span class="empty-icon">↕</span>
+                <strong>No hay movimientos para mostrar</strong>
+                <span>Registra una entrada o salida de productos.</span>
+              </div>
+            </section>
+            <div class="info-banner">
+              <span class="info-mark">i</span>
+              <p>
+                El stock se actualiza al registrar el movimiento. Las salidas no se permiten si
+                superan las existencias disponibles.
+              </p>
+            </div>
+          </section>
+
+          <div class="alert hidden" id="global-alert" role="alert"></div>
+          <footer class="page-footer">Inventario <span>·</span> Gestión simple, stock al día.</footer>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="form-dialog" id="product-dialog">
+      <form id="product-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">CATÁLOGO</p>
+            <h2>Nuevo producto</h2>
+            <p>Completa los datos para agregarlo al inventario.</p>
+          </div>
+          <button class="dialog-close" data-close-dialog type="button" aria-label="Cerrar">×</button>
+        </div>
+        <label class="form-field">
+          <span>Nombre <b>*</b></span>
+          <input name="nombre" type="text" maxlength="150" placeholder="Ej. Teclado inalámbrico" required />
+        </label>
+        <label class="form-field">
+          <span>Descripción</span>
+          <textarea name="descripcion" rows="3" maxlength="500" placeholder="Descripción breve del producto"></textarea>
+        </label>
+        <div class="form-row">
+          <label class="form-field">
+            <span>Precio <b>*</b></span>
+            <input name="precio" type="number" min="0" step="0.01" placeholder="0.00" required />
+          </label>
+          <label class="form-field">
+            <span>Stock inicial <b>*</b></span>
+            <input name="stock" type="number" min="0" step="1" placeholder="0" required />
+          </label>
+        </div>
+        <label class="form-field">
+          <span>ID de categoría</span>
+          <input name="idCategoria" type="number" min="1" step="1" placeholder="Ej. 1" />
+          <small>Usa el ID de una categoría existente en la base de datos.</small>
+        </label>
+        <div class="dialog-actions">
+          <button class="button button-secondary" data-close-dialog type="button">Cancelar</button>
+          <button class="button button-primary" type="submit">Guardar producto</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="movement-dialog">
+      <form id="movement-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">CONTROL DE STOCK</p>
+            <h2>Registrar movimiento</h2>
+            <p>El stock del producto se actualizará automáticamente.</p>
+          </div>
+          <button class="dialog-close" data-close-dialog type="button" aria-label="Cerrar">×</button>
+        </div>
+        <label class="form-field">
+          <span>Producto <b>*</b></span>
+          <select name="idProducto" id="movement-product" required>
+            <option value="">Selecciona un producto</option>
+          </select>
+        </label>
+        <div class="form-row">
+          <label class="form-field">
+            <span>Tipo de movimiento <b>*</b></span>
+            <select name="tipo" required>
+              <option value="ENTRADA">Entrada</option>
+              <option value="SALIDA">Salida</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Cantidad <b>*</b></span>
+            <input name="cantidad" type="number" min="1" step="1" placeholder="Ej. 10" required />
+          </label>
+        </div>
+        <label class="form-field">
+          <span>Motivo</span>
+          <input name="motivo" type="text" maxlength="250" placeholder="Ej. Compra a proveedor" />
+        </label>
+        <div class="dialog-actions">
+          <button class="button button-secondary" data-close-dialog type="button">Cancelar</button>
+          <button class="button button-primary" type="submit">Guardar movimiento</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

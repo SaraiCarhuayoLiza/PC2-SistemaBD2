@@ -27,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        Optional<Usuario> userOpt = usuarioRepo.findByCorreo(req.getCorreo());
+        Optional<Usuario> userOpt = usuarioRepo.findByEmail(req.getEmail());
 
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no encontrado");

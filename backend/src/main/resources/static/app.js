@@ -1,11 +1,15 @@
 const API = {
   productos: "/api/productos",
   movimientos: "/api/movimientos",
+  categorias: "/api/categorias",
+  usuarios: "/api/usuarios",
 };
 
 const state = {
   productos: [],
   movimientos: [],
+  categorias: [],
+  usuarios: [],
   view: "inicio",
 };
 
@@ -43,6 +47,16 @@ function productName(id) {
   return product ? product.nombre : `Producto #${id ?? "—"}`;
 }
 
+function categoryName(id) {
+  const category = state.categorias.find((item) => Number(item.id) === Number(id));
+  return category ? category.nombre : `Categoría #${id ?? "—"}`;
+}
+
+function userName(id) {
+  const user = state.usuarios.find((item) => Number(item.id) === Number(id));
+  return user ? user.nombre : `Usuario #${id ?? "—"}`;
+}
+
 function stockStatus(stock) {
   const quantity = Number(stock) || 0;
   if (quantity <= 0) return '<span class="status-badge status-out">Agotado</span>';
@@ -50,10 +64,7 @@ function stockStatus(stock) {
   return '<span class="status-badge status-ok">Disponible</span>';
 }
 
-function productRow(product, includeDescription = false) {
-  const description = includeDescription
-    ? `<td class="description-cell" title="${escapeHtml(product.descripcion || "")}">${escapeHtml(product.descripcion || "—")}</td>`
-    : "";
+function productRow(product) {
   return `
     <tr>
       <td>
@@ -62,8 +73,7 @@ function productRow(product, includeDescription = false) {
           <span>${escapeHtml(product.nombre || "Sin nombre")}</span>
         </div>
       </td>
-      ${description}
-      <td>${product.idCategoria ? `Categoría #${escapeHtml(product.idCategoria)}` : "—"}</td>
+      <td>${escapeHtml(categoryName(product.idCategoria))}</td>
       <td>${currencyFormat.format(Number(product.precio) || 0)}</td>
       <td>${numberFormat.format(Number(product.stock) || 0)} uds.</td>
       <td>${stockStatus(product.stock)}</td>
@@ -81,7 +91,7 @@ function movementRow(movement) {
       <td>${escapeHtml(productName(movement.idProducto))}</td>
       <td>${formatDate(movement.fecha)}</td>
       <td><span class="movement-quantity ${direction}">${prefix}${numberFormat.format(Number(movement.cantidad) || 0)} uds.</span></td>
-      <td>${escapeHtml(movement.motivo || "—")}</td>
+      <td>${escapeHtml(userName(movement.idUsuario))}</td>
     </tr>`;
 }
 
@@ -101,13 +111,13 @@ function renderProducts() {
 
   const query = document.getElementById("product-search").value.trim().toLocaleLowerCase("es");
   const filtered = sorted.filter((item) =>
-    [item.nombre, item.descripcion, item.idCategoria]
+    [item.nombre, categoryName(item.idCategoria)]
       .some((value) => String(value ?? "").toLocaleLowerCase("es").includes(query)),
   );
   setTableContent(
     "products-table",
     "products-empty",
-    filtered.map((item) => productRow(item, true)).join(""),
+    filtered.map((item) => productRow(item)).join(""),
   );
   document.getElementById("product-count-label").textContent =
     `${numberFormat.format(state.productos.length)} producto${state.productos.length === 1 ? "" : "s"} registrados`;
@@ -123,6 +133,28 @@ function renderProducts() {
       )
       .join("");
   if (sorted.some((item) => String(item.id) === selected)) selector.value = selected;
+
+  const categorySelect = document.getElementById("product-category");
+  const selectedCategory = categorySelect.value;
+  categorySelect.innerHTML =
+    '<option value="">Selecciona una categoría</option>' +
+    state.categorias
+      .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.nombre)}</option>`)
+      .join("");
+  if (state.categorias.some((item) => String(item.id) === selectedCategory)) {
+    categorySelect.value = selectedCategory;
+  }
+
+  const userSelect = document.getElementById("movement-user");
+  const selectedUser = userSelect.value;
+  userSelect.innerHTML =
+    '<option value="">Selecciona un usuario</option>' +
+    state.usuarios
+      .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.nombre)} · ${escapeHtml(item.rol)}</option>`)
+      .join("");
+  if (state.usuarios.some((item) => String(item.id) === selectedUser)) {
+    userSelect.value = selectedUser;
+  }
 }
 
 function renderMovements() {
@@ -205,15 +237,24 @@ async function request(path, options) {
 async function loadInventory() {
   setConnection(false, "Conectando...");
   try {
-    const [products, movements] = await Promise.all([
+    const [products, movements, categories, users] = await Promise.all([
       request(API.productos),
       request(API.movimientos),
+      request(API.categorias),
+      request(API.usuarios),
     ]);
-    if (!Array.isArray(products) || !Array.isArray(movements)) {
+    if (
+      !Array.isArray(products) ||
+      !Array.isArray(movements) ||
+      !Array.isArray(categories) ||
+      !Array.isArray(users)
+    ) {
       throw new Error("El API respondió con un formato inesperado.");
     }
     state.productos = products;
     state.movimientos = movements;
+    state.categorias = categories;
+    state.usuarios = users;
     setConnection(true, "API conectada");
     render();
   } catch (error) {
@@ -291,13 +332,11 @@ document.getElementById("product-form").addEventListener("submit", async (event)
   event.preventDefault();
   const form = event.currentTarget;
   const values = formValues(form);
-  const categoryId = values.idCategoria.trim();
   const payload = {
     nombre: values.nombre.trim(),
-    descripcion: values.descripcion.trim() || null,
     precio: Number(values.precio),
     stock: Number(values.stock),
-    idCategoria: categoryId ? Number(categoryId) : null,
+    idCategoria: Number(values.idCategoria),
   };
   setSubmitting(form, true, "Guardar producto");
   try {
@@ -319,9 +358,9 @@ document.getElementById("movement-form").addEventListener("submit", async (event
   const values = formValues(form);
   const payload = {
     idProducto: Number(values.idProducto),
+    idUsuario: Number(values.idUsuario),
     tipo: values.tipo,
     cantidad: Number(values.cantidad),
-    motivo: values.motivo.trim() || null,
   };
   setSubmitting(form, true, "Guardar movimiento");
   try {

@@ -158,7 +158,7 @@
                       <th>PRODUCTO</th>
                       <th>FECHA</th>
                       <th>CANTIDAD</th>
-                      <th>MOTIVO</th>
+                      <th>USUARIO</th>
                     </tr>
                   </thead>
                   <tbody id="overview-movements"></tbody>
@@ -201,7 +201,6 @@
                   <thead>
                     <tr>
                       <th>PRODUCTO</th>
-                      <th>DESCRIPCIÓN</th>
                       <th>CATEGORÍA</th>
                       <th>PRECIO</th>
                       <th>STOCK</th>
@@ -253,7 +252,7 @@
                       <th>PRODUCTO</th>
                       <th>FECHA</th>
                       <th>CANTIDAD</th>
-                      <th>MOTIVO</th>
+                      <th>USUARIO</th>
                     </tr>
                   </thead>
                   <tbody id="movements-table"></tbody>
@@ -294,10 +293,6 @@
           <span>Nombre <b>*</b></span>
           <input name="nombre" type="text" maxlength="150" placeholder="Ej. Teclado inalámbrico" required />
         </label>
-        <label class="form-field">
-          <span>Descripción</span>
-          <textarea name="descripcion" rows="3" maxlength="500" placeholder="Descripción breve del producto"></textarea>
-        </label>
         <div class="form-row">
           <label class="form-field">
             <span>Precio <b>*</b></span>
@@ -309,9 +304,10 @@
           </label>
         </div>
         <label class="form-field">
-          <span>ID de categoría</span>
-          <input name="idCategoria" type="number" min="1" step="1" placeholder="Ej. 1" />
-          <small>Usa el ID de una categoría existente en la base de datos.</small>
+          <span>Categoría <b>*</b></span>
+          <select name="idCategoria" id="product-category" required>
+            <option value="">Selecciona una categoría</option>
+          </select>
         </label>
         <div class="dialog-actions">
           <button class="button button-secondary" data-close-dialog type="button">Cancelar</button>
@@ -336,6 +332,12 @@
             <option value="">Selecciona un producto</option>
           </select>
         </label>
+        <label class="form-field">
+          <span>Usuario responsable <b>*</b></span>
+          <select name="idUsuario" id="movement-user" required>
+            <option value="">Selecciona un usuario</option>
+          </select>
+        </label>
         <div class="form-row">
           <label class="form-field">
             <span>Tipo de movimiento <b>*</b></span>
@@ -349,10 +351,6 @@
             <input name="cantidad" type="number" min="1" step="1" placeholder="Ej. 10" required />
           </label>
         </div>
-        <label class="form-field">
-          <span>Motivo</span>
-          <input name="motivo" type="text" maxlength="250" placeholder="Ej. Compra a proveedor" />
-        </label>
         <div class="dialog-actions">
           <button class="button button-secondary" data-close-dialog type="button">Cancelar</button>
           <button class="button button-primary" type="submit">Guardar movimiento</button>

@@ -1,18 +1,29 @@
 # PC2-SistemaBD2
-Sistema con base de datos distribuida
 
-## Frontend de inventario
+## Ejecutar el programa
 
-El panel web está integrado en los recursos estáticos de Spring Boot. Inicia el
-backend y abre `http://localhost:8080/` para consultar productos y movimientos,
-registrar productos y crear entradas o salidas de stock.
+Se necesita Java 21 y conexión a internet para que el backend se conecte a
+Supabase. En PowerShell, desde la carpeta raíz del repositorio, ejecuta:
 
-El frontend consume los endpoints existentes:
+```powershell
+cd backend
+$env:SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require"
+$env:SPRING_DATASOURCE_USERNAME = "postgres.tseqesbgszklimwiilpr"
+$secure = Read-Host "BDinventario" -AsSecureString
+$env:SPRING_DATASOURCE_PASSWORD = [System.Net.NetworkCredential]::new("", $secure).Password
+.\mvnw.cmd spring-boot:run
+```
+luego al ejecutar esos comandos conjuntamente,
+te saldra 
+BDinventario:
+Solos vuelve a repetir la contraseña BDinventario, para ingresar
 
-- `GET` y `POST /api/productos`
-- `GET` y `POST /api/movimientos`
 
-Al registrar un movimiento, el backend actualiza el stock del producto. El
-formulario de productos admite `idCategoria`, que debe corresponder a una
-categoría existente en la base de datos. El backend actual aún no expone una API
-para listar o administrar categorías ni usuarios.
+Escribe la contraseña de la base de datos cuando PowerShell la solicite. No se
+mostrará en pantalla. Mantén esta ventana abierta mientras uses la aplicación;
+las variables de entorno solo duran durante esa sesión de PowerShell. Para
+detener el servidor, presiona `Ctrl+C`.
+
+Con el backend iniciado, abre [http://localhost:8080/](http://localhost:8080/).
+El panel web y la API se sirven desde el mismo servidor.
+

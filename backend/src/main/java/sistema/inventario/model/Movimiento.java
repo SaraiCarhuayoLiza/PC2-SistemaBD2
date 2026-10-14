@@ -10,10 +10,14 @@ import java.time.LocalDateTime;
 public class Movimiento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_movimiento")
     private Long id;
 
     @Column(name = "id_producto", nullable = false)
     private Long idProducto;
+
+    @Column(name = "id_usuario", nullable = false)
+    private Long idUsuario;
 
     @Column(nullable = false)
     private String tipo; // 'ENTRADA' o 'SALIDA'
@@ -21,10 +25,6 @@ public class Movimiento {
     @Column(nullable = false)
     private Integer cantidad;
 
-    private String motivo;
-
-    @Column(name = "id_usuario")
-    private Long idUsuario;
-
+    @Column(nullable = false)
     private LocalDateTime fecha = LocalDateTime.now();
 }
